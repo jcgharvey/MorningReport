@@ -48,6 +48,10 @@
             android:name="com.example.morningreport.RSSActivity"
             android:label="@string/title_activity_rss" >
         </activity>
+        <activity
+            android:name="com.example.morningreport.RssAdderActivity"
+            android:label="@string/title_activity_rss_adder" >
+        </activity>
     </application>
 
 </manifest>

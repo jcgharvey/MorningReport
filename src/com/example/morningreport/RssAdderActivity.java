@@ -13,71 +13,44 @@ import org.xmlpull.v1.XmlPullParserFactory;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ListView;
+import android.widget.EditText;
 
-public class MainActivity extends Activity {
+public class RssAdderActivity extends Activity {
+	Button addButton;
+	EditText addURL;
+	EditText addTitle;
+	Context context = this;
 
-	final List<String> TITLES = new ArrayList<String>();
-	protected FeedsDataSource fds;
-	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		final Context context = this;
-		fds = new FeedsDataSource(context);
-		fds.open();
-		// remove clear line before deploy - only un comment when adding new
-		// things to db
-		//fds.clear();
-		// if feeds table contains anything
-		if (fds.getAllFeeds().size() == 0) {
-			fds.createRSS("PC World",
-					"http://feeds.pcworld.com/pcworld/latestnews");
-			fds.createRSS("ESPN Top", "http://sports.espn.go.com/espn/rss/news");
-			fds.createRSS("BBC World",
-					"http://feeds.bbci.co.uk/news/world/rss.xml");
-			fds.createRSS("CNN Top", "http://rss.cnn.com/rss/edition.rss");
-		}
+		setContentView(R.layout.activity_rss_adder);
 
-		for (String s : fds.getRssMap().keySet()) {
-			TITLES.add(s);
-		}
-		TITLES.add("Reddit");
+		addButton = (Button) findViewById(R.id.addButton);
+		addURL = (EditText) findViewById(R.id.feedUrl);
+		addTitle = (EditText) findViewById(R.id.feedTitle);
 
-		new GetRSSFeedTask(this).execute(fds.getAllFeedsArray());
+		addButton.setOnClickListener(new View.OnClickListener() {
 
-		setContentView(R.layout.activity_main);
-		final ListView listView = (ListView) findViewById(R.id.mainListView);
-		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
-				android.R.layout.simple_list_item_1, android.R.id.text1, TITLES);
-		listView.setAdapter(adapter);
-
-		listView.setOnItemClickListener(new OnItemClickListener() {
 			@Override
-			public void onItemClick(AdapterView<?> myAdapter, View myView,
-					int myItemInt, long myLong) {
-				String selected = (String) (listView
-						.getItemAtPosition(myItemInt));
-				Intent intent = new Intent(context, RSSActivity.class);
-
-				if (selected.equals("Reddit")) {
-					intent = new Intent(context, RedditActivity.class);
+			public void onClick(View view) {
+				String url = addURL.getText().toString();
+				String title = addTitle.getText().toString();
+				
+				if (url == "" || url == null || title == "" || title == null ) {
+					// bad
 				} else {
-					intent.putExtra("URL", fds.getUrlForTitle(selected));
-					intent.putExtra("TITLE", selected);
+					// try to load
+					Feed f = new Feed(title, url);
+					new GetRSSFeedTask(context).execute(f);
+					// if pass load - add to database
+
 				}
-				startActivity(intent);
 			}
 		});
 	}
@@ -85,39 +58,15 @@ public class MainActivity extends Activity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
-
-		getMenuInflater().inflate(R.menu.main, menu);
+		getMenuInflater().inflate(R.menu.rss_adder, menu);
 		return true;
-	}
-	
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		// respond to menu item selection
-		switch (item.getItemId()) {
-		case R.id.about:
-			startActivity(new Intent(this, AboutActivity.class));
-			return true;
-		case R.id.help:
-			startActivity(new Intent(this, HelpActivity.class));
-			return true;
-		case R.id.contact:
-			System.out.println("contact here");
-			startActivity(new Intent(this, ContactActivity.class));
-			return true;
-		case R.id.rss_adder:
-			System.out.println("RSS here");
-			startActivity(new Intent(this, RssAdderActivity.class));
-			return true;
-		default:
-			System.out.println("Went here");
-			return super.onOptionsItemSelected(item);
-		}
 	}
 
 	private class GetRSSFeedTask extends AsyncTask<Feed, Void, List<Item>> {
 
 		private Context context;
 		private ItemsDataSource ids;
+		private FeedsDataSource fds;
 
 		public GetRSSFeedTask(Context c) {
 			this.context = c;
@@ -132,6 +81,9 @@ public class MainActivity extends Activity {
 
 			URL feedUrl;
 			List<Item> items = new ArrayList<Item>();
+			fds = new FeedsDataSource(context);
+			fds.open();
+			
 			ids = new ItemsDataSource(context);
 			ids.open();
 			ids.clear();
@@ -174,8 +126,7 @@ public class MainActivity extends Activity {
 						} else if (eventType == XmlPullParser.END_TAG
 								&& xpp.getName().equalsIgnoreCase("item")) {
 							if (title != null && url != null && desc != null) {
-								items.add(ids.createItem(title, url, desc,
-										feedTitle));
+								items.add(new Item(title, url, desc, feedTitle));
 							}
 							title = null;
 							url = null;
@@ -185,24 +136,30 @@ public class MainActivity extends Activity {
 						eventType = xpp.next();
 					}
 				} catch (MalformedURLException e) {
+					System.out.println("Bad: " + feeds[0].getTitle());
+					System.out.println("Bad: " + feeds[0].getUrl());
 					e.printStackTrace();
 				} catch (XmlPullParserException e) {
+					System.out.println("Bad: " + feeds[0].getTitle());
+					System.out.println("Bad: " + feeds[0].getUrl());
 					e.printStackTrace();
 				} catch (IOException e) {
+					System.out.println("Bad: " + feeds[0].getTitle());
+					System.out.println("Bad: " + feeds[0].getUrl());
 					e.printStackTrace();
 				}
 			}
-
+			// adds it to the database
+			fds.createRSS(feeds[0].getTitle(),feeds[0].getUrl());
+			for (Item i : items){
+				ids.createItem(i.getTitle(), i.getUrl(), i.getDesc(), i.getFeedTitle());
+			}
 			return items;
 		}
 
 		@Override
 		protected void onPostExecute(List<Item> itemList) {
 			super.onPostExecute(itemList);
-			System.out.println("DB IDS " + ids.getAllItems().size());
-			for (Item i : ids.getAllItems()) {
-				System.out.println("DB : " + i.getTitle());
-			}
 		}
 
 		private InputStream getInputStream(URL url) {
@@ -211,7 +168,6 @@ public class MainActivity extends Activity {
 			} catch (IOException e) {
 				return null;
 			}
-
 		}
 	}
 }

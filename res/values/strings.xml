@@ -17,5 +17,6 @@
     <string name="contact_app">Maybe set up an email form here, thats what an android app on my phone has. They provide own email and comments and it goes to an email set up for this app. </string>
     <string name="title_activity_reddit">RedditActivity</string>
     <string name="title_activity_rss">RSSActivity</string>
+    <string name="title_activity_rss_adder">RssAdderActivity</string>
 
 </resources>

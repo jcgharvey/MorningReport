@@ -9,5 +9,6 @@
     <item
         android:id="@+id/about"
         android:title="@string/title_about" />
+    <item android:id="@+id/rss_adder" android:title="Feed Adder"></item>
 
 </menu>
