@@ -14,13 +14,13 @@ public class RSSItemCardCreator implements CardCreator {
 	private String _providerName;
 	private int _providerLogo;
 	private String _postTitle;
-	private String _description;
+	private String _url;
 
-	public RSSItemCardCreator (String providerName, int providerLogo, String postTitle, String description) {
+	public RSSItemCardCreator (String providerName, int providerLogo, String postTitle, String url) {
 		this._providerName = providerName;
 		this._providerLogo = providerLogo;
 		this._postTitle = postTitle;
-		this._description = description;
+		this._url = url;
 	}
 	
 	@Override
@@ -36,14 +36,12 @@ public class RSSItemCardCreator implements CardCreator {
 		TextView postTitle = (TextView)card.findViewById(R.id.title);
 		postTitle.setText(this._postTitle);
 		
-		TextView postDescription = (TextView)card.findViewById(R.id.description);
-		postDescription.setText(this._description);
-		
 		return card;
 	}
 	
-	public String toString() {
-		return _postTitle + "\n" + _description;
+	public String getUrl() {
+		return this._url; 
 	}
+	
 
 }

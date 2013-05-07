@@ -17,18 +17,23 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.morningreport.cardcreators.CardCreator;
+import com.example.morningreport.cardcreators.RSSCardOnClickListener;
 import com.example.morningreport.cardcreators.RSSItemCardCreator;
 
 public class RSSActivity extends Activity {
 	
 	private String _provider;
+	private View _contextMenuSpawner;
+	
 
 	public void print(String s) {
 		System.out.println(s);
@@ -74,9 +79,34 @@ public class RSSActivity extends Activity {
 		
 	}
 	
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View v,
+			ContextMenuInfo menuInfo) {
+		this._contextMenuSpawner = v;
+		
+		menu.add(menu.NONE, R.id.action_delete_card, menu.NONE, "Delete");
+	}
+ 
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {
+		if(item.getItemId() == R.id.action_delete_card){
+			Toast.makeText(this, "AWWWW YEAH DELETE ME SON", Toast.LENGTH_LONG).show();
+			
+			LinearLayout cardContainer = (LinearLayout) findViewById(R.id.cardContainer);
+			cardContainer.removeView(this._contextMenuSpawner);
+			
+			this._contextMenuSpawner = null;
+			
+		}
+		return true;
+	}
+	
 	private void createCard(CardCreator cardCreator) {
 		View card = cardCreator.createView(this);
-		print("Have view");
+		card.setOnClickListener(new RSSCardOnClickListener(this, cardCreator.getUrl()));
+		card.setOnLongClickListener(new RSSCardOnLongClickListener());
+		
+		registerForContextMenu(card);
 		
 		LinearLayout cardContainer = (LinearLayout) findViewById(R.id.cardContainer);
 		cardContainer.addView(card);
