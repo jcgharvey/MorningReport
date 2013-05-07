@@ -157,7 +157,8 @@ public class RssAdderActivity extends Activity {
 					ids.createItem(i.getTitle(), i.getUrl(), i.getDesc(),
 							i.getFeedTitle());
 				}
-				Toast.makeText(context, "added " + items.size() + " Items", Toast.LENGTH_SHORT);
+				Toast.makeText(context, "added " + items.size() + " Items", Toast.LENGTH_SHORT).show();
+				
 			}
 			return items;
 		}
