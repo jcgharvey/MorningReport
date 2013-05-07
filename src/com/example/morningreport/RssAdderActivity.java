@@ -19,6 +19,7 @@ import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 public class RssAdderActivity extends Activity {
 	Button addButton;
@@ -41,8 +42,8 @@ public class RssAdderActivity extends Activity {
 			public void onClick(View view) {
 				String url = addURL.getText().toString();
 				String title = addTitle.getText().toString();
-				
-				if (url == "" || url == null || title == "" || title == null ) {
+
+				if (url == "" || url == null || title == "" || title == null) {
 					// bad
 				} else {
 					// try to load
@@ -83,7 +84,7 @@ public class RssAdderActivity extends Activity {
 			List<Item> items = new ArrayList<Item>();
 			fds = new FeedsDataSource(context);
 			fds.open();
-			
+
 			ids = new ItemsDataSource(context);
 			ids.open();
 			ids.clear();
@@ -150,9 +151,13 @@ public class RssAdderActivity extends Activity {
 				}
 			}
 			// adds it to the database
-			fds.createRSS(feeds[0].getTitle(),feeds[0].getUrl());
-			for (Item i : items){
-				ids.createItem(i.getTitle(), i.getUrl(), i.getDesc(), i.getFeedTitle());
+			if (items.size() > 0) {
+				fds.createRSS(feeds[0].getTitle(), feeds[0].getUrl());
+				for (Item i : items) {
+					ids.createItem(i.getTitle(), i.getUrl(), i.getDesc(),
+							i.getFeedTitle());
+				}
+				Toast.makeText(context, "added " + items.size() + " Items", Toast.LENGTH_SHORT);
 			}
 			return items;
 		}
